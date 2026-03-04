@@ -1,0 +1,37 @@
+name: X Daily Digest
+
+on:
+  schedule:
+    # 每天 UTC 02:00 运行 = 北京时间 10:00
+    - cron: "0 2 * * *"
+  workflow_dispatch:
+
+jobs:
+  digest:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Setup cookies
+        run: echo '${{ secrets.X_COOKIES_JSON }}' > cookies.json
+
+      - name: Run digest
+        env:
+          X_ACCOUNTS: ${{ secrets.X_ACCOUNTS }}
+          LLM_API_KEY: ${{ secrets.LLM_API_KEY }}
+          LLM_BASE_URL: ${{ secrets.LLM_BASE_URL }}
+          LLM_MODEL: ${{ secrets.LLM_MODEL }}
+          WECOM_WEBHOOK_KEY: ${{ secrets.WECOM_WEBHOOK_KEY }}
+        run: python main.py
